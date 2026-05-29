@@ -1,0 +1,184 @@
+.joy {
+  background: #1a1b1f;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  padding: 140px 24px;
+}
+
+.joy__inner {
+  width: 100%;
+  max-width: 1200px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 96px;
+}
+
+/* ---------- header ---------- */
+.joy__header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  text-align: center;
+}
+
+.joy__eyebrow {
+  margin: 0;
+  font-weight: 500;
+  font-size: clamp(20px, 2.6vw, 34px);
+  letter-spacing: -0.68px;
+  color: #73798c;
+  line-height: 1.3;
+}
+
+.joy__title {
+  margin: 0;
+  font-weight: 700;
+  font-size: clamp(30px, 4.2vw, 54px);
+  letter-spacing: -1.08px;
+  color: var(--white);
+  line-height: 1.3;
+}
+
+/* ---------- cards ---------- */
+.joy__cards {
+  width: 100%;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+}
+
+.joy__card {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 16px;
+}
+
+.joy__pill {
+  background: #2f323a;
+  border-radius: 12px;
+  padding: 16px 40px;
+  text-align: center;
+  font-weight: 600;
+  font-size: clamp(15px, 1.4vw, 18px);
+  letter-spacing: -0.36px;
+  color: var(--white);
+  white-space: nowrap;
+}
+
+.joy__shot {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 379 / 524;
+  background: var(--white);
+  border-radius: 14px;
+  overflow: hidden;
+}
+
+/* image stage */
+.joy__stage {
+  position: absolute;
+  inset: 0;
+}
+
+.joy__stage--single {
+  display: flex;
+  justify-content: center;
+}
+
+.joy-img--map {
+  position: absolute;
+  top: 9%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 62.5%;
+  height: auto;
+  object-fit: contain;
+}
+
+.joy-img--detail {
+  position: absolute;
+  top: 9%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 62.5%;
+  height: auto;
+  object-fit: contain;
+}
+
+/* stacked photos */
+.joy-img--photo {
+  position: absolute;
+  width: 42.5%;
+  height: auto;
+  border-radius: 10px;
+  object-fit: cover;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18);
+}
+
+.joy-img--photo-back {
+  top: 9%;
+  left: 8.5%;
+  transform: rotate(-4deg);
+  z-index: 1;
+}
+
+.joy-img--photo-front {
+  top: 20%;
+  left: 41%;
+  transform: rotate(6deg);
+  z-index: 2;
+}
+
+/* caption gradient */
+.joy__caption {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 47%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  padding-bottom: 9%;
+  background: linear-gradient(
+    to bottom,
+    rgba(255, 255, 255, 0) 0%,
+    #ffffff 61%
+  );
+  pointer-events: none;
+}
+
+.joy__caption p {
+  margin: 0;
+  font-weight: 500;
+  font-size: clamp(13px, 1.15vw, 17px);
+  letter-spacing: -0.34px;
+  line-height: 1.4;
+  color: var(--black);
+  text-align: center;
+  white-space: nowrap;
+}
+
+/* ---------- responsive ---------- */
+@media (max-width: 900px) {
+  .joy {
+    padding: 96px 24px;
+  }
+  .joy__inner {
+    gap: 64px;
+  }
+  .joy__cards {
+    grid-template-columns: 1fr;
+    max-width: 420px;
+    margin: 0 auto;
+    gap: 36px;
+  }
+  .joy__pill {
+    white-space: normal;
+  }
+}

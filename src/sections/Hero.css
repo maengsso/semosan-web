@@ -1,0 +1,76 @@
+.hero {
+  position: relative;
+  height: 300vh;
+  background: #000;
+}
+
+.hero__sticky {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  width: 100%;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.hero__bg {
+  position: absolute;
+  inset: 0;
+}
+
+.hero__bg img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.hero__bg-veil {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+    ellipse at center,
+    rgba(0, 0, 0, 0) 35%,
+    rgba(0, 0, 0, 0.35) 100%
+  );
+}
+
+.hero__logo {
+  position: relative;
+  z-index: 2;
+  width: 62vw;
+  max-width: 1200px;
+  filter: drop-shadow(0 8px 40px rgba(0, 0, 0, 0.45));
+  will-change: transform, opacity;
+}
+
+.hero__hint {
+  position: absolute;
+  bottom: 40px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 3;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  font-size: 14px;
+  letter-spacing: 2px;
+  color: rgba(255, 255, 255, 0.75);
+}
+
+.hero__hint-arrow {
+  animation: hero-bounce 1.6s ease-in-out infinite;
+  font-size: 18px;
+}
+
+@keyframes hero-bounce {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(6px);
+  }
+}

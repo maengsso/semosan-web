@@ -1,0 +1,86 @@
+.q {
+  position: relative;
+  height: 320vh;
+  background: #000;
+}
+
+.q__sticky {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.q__bg {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+}
+
+.q__bg img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.q__bg-veil {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+}
+
+.q__center {
+  position: relative;
+  z-index: 2;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 28px;
+}
+
+.q__typed {
+  font-size: clamp(56px, 9vw, 150px);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: #fff;
+  display: inline-flex;
+  align-items: center;
+  min-height: 1.2em;
+}
+
+.q__caret {
+  display: inline-block;
+  width: 4px;
+  height: 0.95em;
+  margin-left: 10px;
+  background: var(--accent);
+  animation: q-blink 1s steps(1) infinite;
+}
+
+@keyframes q-blink {
+  50% {
+    opacity: 0;
+  }
+}
+
+.q__line {
+  font-size: clamp(28px, 4vw, 64px);
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.92);
+  letter-spacing: -0.02em;
+}
+
+.q__final {
+  position: absolute;
+  z-index: 3;
+  text-align: center;
+  font-size: clamp(30px, 4.4vw, 70px);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: #fff;
+  text-shadow: 0 4px 30px rgba(0, 0, 0, 0.6);
+}

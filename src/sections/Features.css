@@ -1,0 +1,155 @@
+.feat {
+  background: var(--white);
+  color: var(--black);
+  padding: 120px 24px 140px;
+  display: flex;
+  justify-content: center;
+}
+
+.feat__inner {
+  width: 100%;
+  max-width: 1240px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* ---- Tab nav ---- */
+.feat__tabs {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  background: #f0f2f4;
+  padding: 6px 8px;
+  border-radius: 999px;
+}
+
+.feat__tab {
+  position: relative;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  padding: 14px 30px;
+  border-radius: 999px;
+  font-family: inherit;
+  font-size: 22px;
+  font-weight: 600;
+  letter-spacing: -0.44px;
+  color: #464a57;
+  white-space: nowrap;
+  transition: color 0.25s ease;
+}
+
+.feat__tab.is-active {
+  color: var(--white);
+}
+
+.feat__tab-pill {
+  position: absolute;
+  inset: 0;
+  border-radius: 999px;
+  background: #1a1b1f;
+  z-index: 0;
+}
+
+.feat__tab-label {
+  position: relative;
+  z-index: 1;
+}
+
+/* ---- Stage ---- */
+.feat__stage {
+  width: 100%;
+  margin-top: 96px;
+  display: flex;
+  justify-content: center;
+}
+
+.feat__content {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 100px;
+}
+
+.feat__copy {
+  flex: 1 1 auto;
+  max-width: 620px;
+  display: flex;
+  flex-direction: column;
+  gap: 40px;
+}
+
+.feat__title {
+  font-size: 52px;
+  font-weight: 700;
+  line-height: 1.3;
+  letter-spacing: -1.04px;
+  color: var(--black);
+}
+
+.feat__desc p {
+  font-size: 27px;
+  font-weight: 500;
+  line-height: 1.5;
+  letter-spacing: -0.54px;
+  color: #3a3f45;
+}
+
+.feat__phone {
+  flex: 0 0 auto;
+  width: 360px;
+  aspect-ratio: 427 / 924;
+  border: 9px solid #dbdde3;
+  border-radius: 32px;
+  overflow: hidden;
+  background: #f0f2f4;
+}
+
+.feat__phone img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+@media (max-width: 1000px) {
+  .feat {
+    padding: 80px 20px 100px;
+  }
+  .feat__tab {
+    font-size: 17px;
+    padding: 11px 18px;
+  }
+  .feat__stage {
+    margin-top: 64px;
+  }
+  .feat__content {
+    flex-direction: column;
+    gap: 48px;
+    text-align: center;
+  }
+  .feat__copy {
+    align-items: center;
+    gap: 24px;
+  }
+  .feat__title {
+    font-size: 36px;
+    letter-spacing: -0.72px;
+  }
+  .feat__desc p {
+    font-size: 19px;
+  }
+  .feat__phone {
+    width: 280px;
+  }
+}
+
+@media (max-width: 520px) {
+  .feat__tabs {
+    flex-wrap: wrap;
+    justify-content: center;
+    border-radius: 24px;
+  }
+}
