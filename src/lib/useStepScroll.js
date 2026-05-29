@@ -60,36 +60,35 @@ export function useStepScroll() {
   useEffect(() => {
     let raf = 0;
     let touchStartY = null;
-    let locked = false; // 한 칸 이동 중이거나 관성이 흐르는 동안 잠금
-    let animEndTs = 0; // 현재 이동 애니메이션이 끝나는 시각
-    let lastInputTs = 0; // 마지막으로 휠/관성 입력이 들어온 시각
-    let watchdog = 0; // 잠금 해제 감시 타이머
-    const QUIET = 160; // 입력이 이만큼 잠잠하면 관성이 끝난 걸로 보고 잠금 해제
+    let animating = false; // 한 칸 이동(트윈) 진행 중
+    let lastWheelTs = 0; // 마지막 휠/관성 신호 시각
+    // 휠 신호가 이만큼 끊겼다 들어오면 "관성 꼬리"가 아니라 새로 굴린 손짓으로 본다.
+    const GESTURE_GAP = 150;
 
     // ease-out: 시작은 바로 붙고 끝에서 부드럽게 안착 → "두둑" 멈칫거림 제거
     const easeOutCubic = (t) => 1 - Math.pow(1 - t, 3);
 
-    // 이동을 시작하고, 이 이동에 걸리는 시간(ms)을 돌려준다.
     const animateTo = (y) => {
       cancelAnimationFrame(raf);
       const startY = window.scrollY;
       const dist = y - startY;
-      if (Math.abs(dist) < 1) return 0;
+      if (Math.abs(dist) < 1) return;
       // 이동 거리에 비례한 시간(가까우면 빠르게, 멀면 천천히)
       const dur = Math.min(Math.max(Math.abs(dist) * 0.55, 480), 1050);
       const t0 = performance.now();
+      animating = true;
       const tick = (now) => {
         const t = Math.min((now - t0) / dur, 1);
         window.scrollTo(0, startY + dist * easeOutCubic(t));
         if (t < 1) raf = requestAnimationFrame(tick);
+        else animating = false; // 이동이 끝나면 즉시 다음 손짓을 받을 수 있음
       };
       raf = requestAnimationFrame(tick);
-      return dur;
     };
 
     const step = (dir) => {
       const stops = buildStops();
-      if (stops.length < 2) return 0;
+      if (stops.length < 2) return;
       const y = window.scrollY;
       const eps = 6;
       let target;
@@ -99,41 +98,27 @@ export function useStepScroll() {
         const prior = stops.filter((s) => s < y - eps);
         target = prior[prior.length - 1];
       }
-      if (target === undefined) return 0;
-      return animateTo(target);
+      if (target === undefined) return;
+      animateTo(target);
     };
 
-    // 잠금 해제 감시: 이동이 끝났고(animEndTs 경과) 입력이 QUIET 동안
-    // 잠잠하면(관성이 죽으면) 잠금 해제. 관성은 1초 안에 반드시 멈추므로
-    // 영영 잠겨버리는 일은 없다.
-    const unlockCheck = () => {
-      const now = performance.now();
-      if (now >= animEndTs && now - lastInputTs > QUIET) {
-        locked = false;
-        clearInterval(watchdog);
-        watchdog = 0;
-      }
-    };
-
-    const lockAfterStep = (dur) => {
-      locked = true;
-      animEndTs = performance.now() + dur;
-      if (!watchdog) watchdog = setInterval(unlockCheck, 50);
-    };
-
-    // 휠/트랙패드: 잠겨있으면 입력 시각만 갱신(관성으로 계속 들어오는 신호)하고
-    // 한 칸만 이동. 한 번 튕긴 손짓 = 딱 한 칸.
-    const tryStep = (dir) => {
-      if (locked) return;
-      const dur = step(dir);
-      if (dur > 0) lockAfterStep(dur);
+    // 키보드·터치는 신호가 한 번씩만 오므로(관성 없음) 이동 중만 아니면 바로 한 칸.
+    const doStep = (dir) => {
+      if (animating) return;
+      step(dir);
     };
 
     const onWheel = (e) => {
       e.preventDefault();
+      const now = performance.now();
+      const gap = now - lastWheelTs;
+      lastWheelTs = now;
       if (Math.abs(e.deltaY) < 2) return;
-      lastInputTs = performance.now();
-      tryStep(e.deltaY > 0 ? 1 : -1);
+      if (animating) return; // 이동 중엔 끝까지 한 칸만
+      // 직전 신호와 충분히 끊겼을 때(=새로 굴린 손짓)만 반응.
+      // 촘촘히 이어지는 관성 꼬리는 여기서 걸러져 다음 칸으로 넘어가지 않는다.
+      if (gap < GESTURE_GAP) return;
+      step(e.deltaY > 0 ? 1 : -1);
     };
 
     const onKey = (e) => {
@@ -141,10 +126,10 @@ export function useStepScroll() {
       const up = ["ArrowUp", "PageUp"];
       if (down.includes(e.key)) {
         e.preventDefault();
-        tryStep(1);
+        doStep(1);
       } else if (up.includes(e.key)) {
         e.preventDefault();
-        tryStep(-1);
+        doStep(-1);
       } else if (e.key === "Home") {
         e.preventDefault();
         animateTo(0);
@@ -166,7 +151,7 @@ export function useStepScroll() {
       const dy = touchStartY - endY;
       touchStartY = null;
       if (Math.abs(dy) < 24) return;
-      tryStep(dy > 0 ? 1 : -1);
+      doStep(dy > 0 ? 1 : -1);
     };
 
     window.addEventListener("wheel", onWheel, { passive: false });
@@ -177,7 +162,6 @@ export function useStepScroll() {
 
     return () => {
       cancelAnimationFrame(raf);
-      if (watchdog) clearInterval(watchdog);
       window.removeEventListener("wheel", onWheel);
       window.removeEventListener("keydown", onKey);
       window.removeEventListener("touchstart", onTouchStart);
