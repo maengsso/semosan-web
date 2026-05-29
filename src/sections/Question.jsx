@@ -23,7 +23,12 @@ export default function Question() {
     [0.28, 0.4, 0.56, 0.66],
     [0, 1, 1, 0]
   );
-  const lineScale = useTransform(scrollYProgress, [0.28, 0.4], [0.6, 1]);
+  // 들어온 뒤에도 스크롤하면 계속 더 커짐
+  const lineScale = useTransform(
+    scrollYProgress,
+    [0.28, 0.4, 0.66],
+    [0.6, 1, 1.6]
+  );
 
   // 산 이미지 줌인 등장
   const imgOpacity = useTransform(scrollYProgress, [0.5, 0.68], [0, 1]);
