@@ -58,31 +58,25 @@ function buildStops() {
 
 export function useStepScroll() {
   useEffect(() => {
-    let animating = false;
-    let locked = false;
     let raf = 0;
-    let unlockTimer = 0;
     let touchStartY = null;
+    let lastStep = 0; // 마지막으로 한 칸 이동한 시각
+    const COOLDOWN = 520; // 이 시간 동안은 추가 입력 무시 (관성 흘림 방지)
 
     const easeInOutCubic = (t) =>
       t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
 
     const animateTo = (y) => {
       cancelAnimationFrame(raf);
-      animating = true;
       const startY = window.scrollY;
       const dist = y - startY;
-      if (Math.abs(dist) < 1) {
-        animating = false;
-        return;
-      }
-      const dur = 800;
+      if (Math.abs(dist) < 1) return;
+      const dur = 700;
       const t0 = performance.now();
       const tick = (now) => {
         const t = Math.min((now - t0) / dur, 1);
         window.scrollTo(0, startY + dist * easeInOutCubic(t));
         if (t < 1) raf = requestAnimationFrame(tick);
-        else animating = false;
       };
       raf = requestAnimationFrame(tick);
     };
@@ -103,23 +97,19 @@ export function useStepScroll() {
       animateTo(target);
     };
 
-    // 한 번의 연속 동작 = 한 칸. 동작이 멈추고 220ms 지나야 다시 이동 가능.
-    const scheduleUnlock = () => {
-      clearTimeout(unlockTimer);
-      unlockTimer = setTimeout(() => {
-        if (animating) scheduleUnlock();
-        else locked = false;
-      }, 220);
+    // 시간 기반 쿨다운: 한 번 이동하면 COOLDOWN 동안만 무시,
+    // 그 뒤엔 다음 입력에 무조건 반응(관성 때문에 멈춰버리는 문제 방지).
+    const tryStep = (dir) => {
+      const now = performance.now();
+      if (now - lastStep < COOLDOWN) return;
+      lastStep = now;
+      step(dir);
     };
 
     const onWheel = (e) => {
       e.preventDefault();
-      if (Math.abs(e.deltaY) < 4) return;
-      if (!locked && !animating) {
-        locked = true;
-        step(e.deltaY > 0 ? 1 : -1);
-      }
-      scheduleUnlock();
+      if (Math.abs(e.deltaY) < 2) return;
+      tryStep(e.deltaY > 0 ? 1 : -1);
     };
 
     const onKey = (e) => {
@@ -127,18 +117,10 @@ export function useStepScroll() {
       const up = ["ArrowUp", "PageUp"];
       if (down.includes(e.key)) {
         e.preventDefault();
-        if (!locked && !animating) {
-          locked = true;
-          step(1);
-        }
-        scheduleUnlock();
+        tryStep(1);
       } else if (up.includes(e.key)) {
         e.preventDefault();
-        if (!locked && !animating) {
-          locked = true;
-          step(-1);
-        }
-        scheduleUnlock();
+        tryStep(-1);
       } else if (e.key === "Home") {
         e.preventDefault();
         animateTo(0);
@@ -159,12 +141,8 @@ export function useStepScroll() {
       const endY = (e.changedTouches[0] || {}).clientY ?? touchStartY;
       const dy = touchStartY - endY;
       touchStartY = null;
-      if (Math.abs(dy) < 30) return;
-      if (!locked && !animating) {
-        locked = true;
-        step(dy > 0 ? 1 : -1);
-      }
-      scheduleUnlock();
+      if (Math.abs(dy) < 24) return;
+      tryStep(dy > 0 ? 1 : -1);
     };
 
     window.addEventListener("wheel", onWheel, { passive: false });
@@ -175,7 +153,6 @@ export function useStepScroll() {
 
     return () => {
       cancelAnimationFrame(raf);
-      clearTimeout(unlockTimer);
       window.removeEventListener("wheel", onWheel);
       window.removeEventListener("keydown", onKey);
       window.removeEventListener("touchstart", onTouchStart);
