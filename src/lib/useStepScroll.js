@@ -60,10 +60,16 @@ export function useStepScroll() {
   useEffect(() => {
     let raf = 0;
     let touchStartY = null;
-    let lastStep = 0; // 마지막으로 한 칸 이동한 시각
-    // 한 번 이동하면 이 시간 동안만 추가 입력(관성)을 무시한다.
-    // 오직 시간으로만 풀리므로 절대 멈춰버리지 않는다.
-    const COOLDOWN = 600;
+    let isMoving = false; // 한 칸 이동(트윈) 진행 중
+    let prevTime = performance.now();
+    let scrollings = []; // 최근 휠 신호 세기 기록
+
+    // 최근 number개 신호 세기의 평균
+    const getAverage = (arr, number) => {
+      const last = arr.slice(Math.max(arr.length - number, 0));
+      if (!last.length) return 0;
+      return last.reduce((a, b) => a + b, 0) / last.length;
+    };
 
     // ease-out: 시작은 바로 붙고 끝에서 부드럽게 안착 → "두둑" 멈칫거림 제거
     const easeOutCubic = (t) => 1 - Math.pow(1 - t, 3);
@@ -76,10 +82,12 @@ export function useStepScroll() {
       // 이동 거리에 비례한 시간(가까우면 빠르게, 멀면 천천히)
       const dur = Math.min(Math.max(Math.abs(dist) * 0.5, 450), 900);
       const t0 = performance.now();
+      isMoving = true;
       const tick = (now) => {
         const t = Math.min((now - t0) / dur, 1);
         window.scrollTo(0, startY + dist * easeOutCubic(t));
         if (t < 1) raf = requestAnimationFrame(tick);
+        else isMoving = false;
       };
       raf = requestAnimationFrame(tick);
     };
@@ -100,19 +108,31 @@ export function useStepScroll() {
       animateTo(target);
     };
 
-    // 시간 기반 쿨다운: 한 번 이동하면 COOLDOWN 동안만 무시,
-    // 그 뒤엔 다음 입력에 무조건 반응(절대 멈춰버리지 않음).
-    const tryStep = (dir) => {
-      const now = performance.now();
-      if (now - lastStep < COOLDOWN) return;
-      lastStep = now;
+    // 키보드·터치는 관성이 없으므로 이동 중만 아니면 바로 한 칸.
+    const doStep = (dir) => {
+      if (isMoving) return;
       step(dir);
     };
 
+    // 휠/트랙패드: 신호 세기가 점점 커지면(새로 굴린 손짓) 한 칸 이동,
+    // 점점 작아지면(관성 꼬리) 무시. → 한 번 굴림 = 딱 한 칸, 절대 안 멈춤.
     const onWheel = (e) => {
       e.preventDefault();
-      if (Math.abs(e.deltaY) < 2) return;
-      tryStep(e.deltaY > 0 ? 1 : -1);
+      const curTime = performance.now();
+      const abs = Math.abs(e.deltaY);
+
+      const timeDiff = curTime - prevTime;
+      prevTime = curTime;
+      // 0.2초 이상 끊겼으면 새 손짓 — 기록 초기화
+      if (timeDiff > 200) scrollings = [];
+      if (scrollings.length > 149) scrollings.shift();
+      scrollings.push(abs);
+
+      if (abs < 2 || isMoving) return;
+
+      // 최근 신호(끝 10개)가 그 이전 흐름(70개)보다 세거나 같으면 = 가속 중 = 새 손짓
+      const accelerating = getAverage(scrollings, 10) >= getAverage(scrollings, 70);
+      if (accelerating) step(e.deltaY > 0 ? 1 : -1);
     };
 
     const onKey = (e) => {
@@ -120,10 +140,10 @@ export function useStepScroll() {
       const up = ["ArrowUp", "PageUp"];
       if (down.includes(e.key)) {
         e.preventDefault();
-        tryStep(1);
+        doStep(1);
       } else if (up.includes(e.key)) {
         e.preventDefault();
-        tryStep(-1);
+        doStep(-1);
       } else if (e.key === "Home") {
         e.preventDefault();
         animateTo(0);
@@ -145,7 +165,7 @@ export function useStepScroll() {
       const dy = touchStartY - endY;
       touchStartY = null;
       if (Math.abs(dy) < 24) return;
-      tryStep(dy > 0 ? 1 : -1);
+      doStep(dy > 0 ? 1 : -1);
     };
 
     window.addEventListener("wheel", onWheel, { passive: false });
