@@ -60,10 +60,10 @@ export function useStepScroll() {
   useEffect(() => {
     let raf = 0;
     let touchStartY = null;
-    let animating = false; // 한 칸 이동(트윈) 진행 중
-    let lastWheelTs = 0; // 마지막 휠/관성 신호 시각
-    // 휠 신호가 이만큼 끊겼다 들어오면 "관성 꼬리"가 아니라 새로 굴린 손짓으로 본다.
-    const GESTURE_GAP = 150;
+    let lastStep = 0; // 마지막으로 한 칸 이동한 시각
+    // 한 번 이동하면 이 시간 동안만 추가 입력(관성)을 무시한다.
+    // 오직 시간으로만 풀리므로 절대 멈춰버리지 않는다.
+    const COOLDOWN = 600;
 
     // ease-out: 시작은 바로 붙고 끝에서 부드럽게 안착 → "두둑" 멈칫거림 제거
     const easeOutCubic = (t) => 1 - Math.pow(1 - t, 3);
@@ -74,14 +74,12 @@ export function useStepScroll() {
       const dist = y - startY;
       if (Math.abs(dist) < 1) return;
       // 이동 거리에 비례한 시간(가까우면 빠르게, 멀면 천천히)
-      const dur = Math.min(Math.max(Math.abs(dist) * 0.55, 480), 1050);
+      const dur = Math.min(Math.max(Math.abs(dist) * 0.5, 450), 900);
       const t0 = performance.now();
-      animating = true;
       const tick = (now) => {
         const t = Math.min((now - t0) / dur, 1);
         window.scrollTo(0, startY + dist * easeOutCubic(t));
         if (t < 1) raf = requestAnimationFrame(tick);
-        else animating = false; // 이동이 끝나면 즉시 다음 손짓을 받을 수 있음
       };
       raf = requestAnimationFrame(tick);
     };
@@ -102,23 +100,19 @@ export function useStepScroll() {
       animateTo(target);
     };
 
-    // 키보드·터치는 신호가 한 번씩만 오므로(관성 없음) 이동 중만 아니면 바로 한 칸.
-    const doStep = (dir) => {
-      if (animating) return;
+    // 시간 기반 쿨다운: 한 번 이동하면 COOLDOWN 동안만 무시,
+    // 그 뒤엔 다음 입력에 무조건 반응(절대 멈춰버리지 않음).
+    const tryStep = (dir) => {
+      const now = performance.now();
+      if (now - lastStep < COOLDOWN) return;
+      lastStep = now;
       step(dir);
     };
 
     const onWheel = (e) => {
       e.preventDefault();
-      const now = performance.now();
-      const gap = now - lastWheelTs;
-      lastWheelTs = now;
       if (Math.abs(e.deltaY) < 2) return;
-      if (animating) return; // 이동 중엔 끝까지 한 칸만
-      // 직전 신호와 충분히 끊겼을 때(=새로 굴린 손짓)만 반응.
-      // 촘촘히 이어지는 관성 꼬리는 여기서 걸러져 다음 칸으로 넘어가지 않는다.
-      if (gap < GESTURE_GAP) return;
-      step(e.deltaY > 0 ? 1 : -1);
+      tryStep(e.deltaY > 0 ? 1 : -1);
     };
 
     const onKey = (e) => {
@@ -126,10 +120,10 @@ export function useStepScroll() {
       const up = ["ArrowUp", "PageUp"];
       if (down.includes(e.key)) {
         e.preventDefault();
-        doStep(1);
+        tryStep(1);
       } else if (up.includes(e.key)) {
         e.preventDefault();
-        doStep(-1);
+        tryStep(-1);
       } else if (e.key === "Home") {
         e.preventDefault();
         animateTo(0);
@@ -151,7 +145,7 @@ export function useStepScroll() {
       const dy = touchStartY - endY;
       touchStartY = null;
       if (Math.abs(dy) < 24) return;
-      doStep(dy > 0 ? 1 : -1);
+      tryStep(dy > 0 ? 1 : -1);
     };
 
     window.addEventListener("wheel", onWheel, { passive: false });
