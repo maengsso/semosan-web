@@ -60,8 +60,11 @@ export function useStepScroll() {
   useEffect(() => {
     let raf = 0;
     let touchStartY = null;
-    let blockUntil = 0; // 이 시각까지는 추가 입력 무시
-    const GAP = 90; // 한 칸 안착 후 다음 입력을 받기까지의 짧은 여유
+    let locked = false; // 한 칸 이동 중이거나 관성이 흐르는 동안 잠금
+    let animEndTs = 0; // 현재 이동 애니메이션이 끝나는 시각
+    let lastInputTs = 0; // 마지막으로 휠/관성 입력이 들어온 시각
+    let watchdog = 0; // 잠금 해제 감시 타이머
+    const QUIET = 160; // 입력이 이만큼 잠잠하면 관성이 끝난 걸로 보고 잠금 해제
 
     // ease-out: 시작은 바로 붙고 끝에서 부드럽게 안착 → "두둑" 멈칫거림 제거
     const easeOutCubic = (t) => 1 - Math.pow(1 - t, 3);
@@ -100,20 +103,36 @@ export function useStepScroll() {
       return animateTo(target);
     };
 
-    // 한 번 이동을 시작하면, 그 이동이 끝날 때까지 추가 입력을 무시한다.
-    // (트랙패드 관성으로 두 칸씩 넘어가는 문제 방지)
-    // blockUntil 은 이동 시작 시 한 번만 정하고 이후 입력으로 다시 늘리지 않는다
-    // → 관성 이벤트가 계속 와도 멈춰버리지 않음.
-    const tryStep = (dir) => {
+    // 잠금 해제 감시: 이동이 끝났고(animEndTs 경과) 입력이 QUIET 동안
+    // 잠잠하면(관성이 죽으면) 잠금 해제. 관성은 1초 안에 반드시 멈추므로
+    // 영영 잠겨버리는 일은 없다.
+    const unlockCheck = () => {
       const now = performance.now();
-      if (now < blockUntil) return;
+      if (now >= animEndTs && now - lastInputTs > QUIET) {
+        locked = false;
+        clearInterval(watchdog);
+        watchdog = 0;
+      }
+    };
+
+    const lockAfterStep = (dur) => {
+      locked = true;
+      animEndTs = performance.now() + dur;
+      if (!watchdog) watchdog = setInterval(unlockCheck, 50);
+    };
+
+    // 휠/트랙패드: 잠겨있으면 입력 시각만 갱신(관성으로 계속 들어오는 신호)하고
+    // 한 칸만 이동. 한 번 튕긴 손짓 = 딱 한 칸.
+    const tryStep = (dir) => {
+      if (locked) return;
       const dur = step(dir);
-      if (dur > 0) blockUntil = now + dur + GAP;
+      if (dur > 0) lockAfterStep(dur);
     };
 
     const onWheel = (e) => {
       e.preventDefault();
       if (Math.abs(e.deltaY) < 2) return;
+      lastInputTs = performance.now();
       tryStep(e.deltaY > 0 ? 1 : -1);
     };
 
@@ -158,6 +177,7 @@ export function useStepScroll() {
 
     return () => {
       cancelAnimationFrame(raf);
+      if (watchdog) clearInterval(watchdog);
       window.removeEventListener("wheel", onWheel);
       window.removeEventListener("keydown", onKey);
       window.removeEventListener("touchstart", onTouchStart);
