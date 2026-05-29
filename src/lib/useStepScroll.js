@@ -10,7 +10,7 @@ import { useEffect } from "react";
  * TALL_STOPS: <main> 안 섹션 순서별로, (섹션 높이 - 화면높이) 대비 멈출 위치(0~1).
  */
 const TALL_STOPS = {
-  0: [0, 0.55, 1], // Hero: 로고 등장 → 꽉 찬 로고 → 바닥 라인+다음 페이지
+  0: [0, 1], // Hero: 로고 인트로 전체를 한 흐름으로 (덜 빡빡하게)
   // Question: 빈 화면(커서) → 한 칸 이동하며 "등산?" 타이핑 → 아재 운동 → 마지막 카피
   1: [0.02, 0.2, 0.45, 0.85],
   // Brand: 카피 → 동그라미 빈 상태 → 한 칸 이동하며 채워짐+질문
@@ -61,21 +61,22 @@ export function useStepScroll() {
     let raf = 0;
     let touchStartY = null;
     let lastStep = 0; // 마지막으로 한 칸 이동한 시각
-    const COOLDOWN = 520; // 이 시간 동안은 추가 입력 무시 (관성 흘림 방지)
+    const COOLDOWN = 460; // 이 시간 동안은 추가 입력 무시 (관성 흘림 방지)
 
-    const easeInOutCubic = (t) =>
-      t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+    // ease-out: 시작은 바로 붙고 끝에서 부드럽게 안착 → "두둑" 멈칫거림 제거
+    const easeOutCubic = (t) => 1 - Math.pow(1 - t, 3);
 
     const animateTo = (y) => {
       cancelAnimationFrame(raf);
       const startY = window.scrollY;
       const dist = y - startY;
       if (Math.abs(dist) < 1) return;
-      const dur = 700;
+      // 이동 거리에 비례한 시간(가까우면 빠르게, 멀면 천천히)
+      const dur = Math.min(Math.max(Math.abs(dist) * 0.55, 480), 1050);
       const t0 = performance.now();
       const tick = (now) => {
         const t = Math.min((now - t0) / dur, 1);
-        window.scrollTo(0, startY + dist * easeInOutCubic(t));
+        window.scrollTo(0, startY + dist * easeOutCubic(t));
         if (t < 1) raf = requestAnimationFrame(tick);
       };
       raf = requestAnimationFrame(tick);
