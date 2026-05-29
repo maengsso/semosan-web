@@ -60,17 +60,18 @@ export function useStepScroll() {
   useEffect(() => {
     let raf = 0;
     let touchStartY = null;
-    let lastStep = 0; // 마지막으로 한 칸 이동한 시각
-    const COOLDOWN = 460; // 이 시간 동안은 추가 입력 무시 (관성 흘림 방지)
+    let blockUntil = 0; // 이 시각까지는 추가 입력 무시
+    const GAP = 90; // 한 칸 안착 후 다음 입력을 받기까지의 짧은 여유
 
     // ease-out: 시작은 바로 붙고 끝에서 부드럽게 안착 → "두둑" 멈칫거림 제거
     const easeOutCubic = (t) => 1 - Math.pow(1 - t, 3);
 
+    // 이동을 시작하고, 이 이동에 걸리는 시간(ms)을 돌려준다.
     const animateTo = (y) => {
       cancelAnimationFrame(raf);
       const startY = window.scrollY;
       const dist = y - startY;
-      if (Math.abs(dist) < 1) return;
+      if (Math.abs(dist) < 1) return 0;
       // 이동 거리에 비례한 시간(가까우면 빠르게, 멀면 천천히)
       const dur = Math.min(Math.max(Math.abs(dist) * 0.55, 480), 1050);
       const t0 = performance.now();
@@ -80,11 +81,12 @@ export function useStepScroll() {
         if (t < 1) raf = requestAnimationFrame(tick);
       };
       raf = requestAnimationFrame(tick);
+      return dur;
     };
 
     const step = (dir) => {
       const stops = buildStops();
-      if (stops.length < 2) return;
+      if (stops.length < 2) return 0;
       const y = window.scrollY;
       const eps = 6;
       let target;
@@ -94,17 +96,19 @@ export function useStepScroll() {
         const prior = stops.filter((s) => s < y - eps);
         target = prior[prior.length - 1];
       }
-      if (target === undefined) return;
-      animateTo(target);
+      if (target === undefined) return 0;
+      return animateTo(target);
     };
 
-    // 시간 기반 쿨다운: 한 번 이동하면 COOLDOWN 동안만 무시,
-    // 그 뒤엔 다음 입력에 무조건 반응(관성 때문에 멈춰버리는 문제 방지).
+    // 한 번 이동을 시작하면, 그 이동이 끝날 때까지 추가 입력을 무시한다.
+    // (트랙패드 관성으로 두 칸씩 넘어가는 문제 방지)
+    // blockUntil 은 이동 시작 시 한 번만 정하고 이후 입력으로 다시 늘리지 않는다
+    // → 관성 이벤트가 계속 와도 멈춰버리지 않음.
     const tryStep = (dir) => {
       const now = performance.now();
-      if (now - lastStep < COOLDOWN) return;
-      lastStep = now;
-      step(dir);
+      if (now < blockUntil) return;
+      const dur = step(dir);
+      if (dur > 0) blockUntil = now + dur + GAP;
     };
 
     const onWheel = (e) => {
