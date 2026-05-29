@@ -18,6 +18,7 @@
 .hero__bg {
   position: absolute;
   inset: 0;
+  will-change: transform;
 }
 
 .hero__bg img {

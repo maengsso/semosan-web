@@ -17,15 +17,17 @@ export default function Hero() {
     [0.45, 1, 1, 1.37]
   );
   const y = useTransform(scrollYProgress, [0, 0.65, 1], ["0vh", "0vh", "38vh"]);
+  // 로고가 바닥으로 내려갈 때 배경 산 사진도 같이 위로 흐르며 다음(어두운) 페이지가 드러남
+  const bgY = useTransform(scrollYProgress, [0.6, 1], ["0vh", "-32vh"]);
   const hintOpacity = useTransform(scrollYProgress, [0, 0.12], [1, 0]);
 
   return (
     <section className="hero" ref={ref}>
       <div className="hero__sticky">
-        <div className="hero__bg">
+        <motion.div className="hero__bg" style={{ y: bgY }}>
           <img src={heroBg} alt="" />
           <div className="hero__bg-veil" />
-        </div>
+        </motion.div>
 
         <motion.img
           className="hero__logo"
