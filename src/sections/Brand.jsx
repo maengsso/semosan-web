@@ -33,7 +33,7 @@ export default function Brand() {
     }
     setFilled(0);
     const timers = DOTS.map((_, i) =>
-      setTimeout(() => setFilled(i + 1), 600 + i * 360)
+      setTimeout(() => setFilled(i + 1), 450 + i * 240)
     );
     return () => timers.forEach(clearTimeout);
   }, [loaderIn]);
