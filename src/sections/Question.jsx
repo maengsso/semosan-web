@@ -11,7 +11,7 @@ export default function Question() {
   const scrollYProgress = useSectionProgress(ref);
 
   // Beat 1: "등산?" 한 글자씩 타이핑 — 한 스크롤 안에 완성
-  const charCount = useTransform(scrollYProgress, [0.03, 0.13], [0, TYPED.length]);
+  const charCount = useTransform(scrollYProgress, [0.05, 0.17], [0, TYPED.length]);
   const [typed, setTyped] = useState(0);
   useMotionValueEvent(charCount, "change", (v) => setTyped(Math.round(v)));
   // 다음 스크롤에서 "등산?" 페이드아웃

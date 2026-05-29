@@ -11,8 +11,10 @@ import { useEffect } from "react";
  */
 const TALL_STOPS = {
   0: [0, 0.55, 1], // Hero: 로고 등장 → 꽉 찬 로고 → 바닥 라인+다음 페이지
-  1: [0.18, 0.45, 0.85], // Question: 등산? → 그거 아재 운동 아니야? → 마지막 카피
-  2: [0.22, 0.8], // Brand: 카피 → 로딩 점/질문
+  // Question: 빈 화면(커서) → 한 칸 이동하며 "등산?" 타이핑 → 아재 운동 → 마지막 카피
+  1: [0.02, 0.2, 0.45, 0.85],
+  // Brand: 카피 → 동그라미 빈 상태 → 한 칸 이동하며 채워짐+질문
+  2: [0.22, 0.6, 0.95],
 };
 
 function buildStops() {
@@ -74,7 +76,7 @@ export function useStepScroll() {
         animating = false;
         return;
       }
-      const dur = 650;
+      const dur = 800;
       const t0 = performance.now();
       const tick = (now) => {
         const t = Math.min((now - t0) / dur, 1);
