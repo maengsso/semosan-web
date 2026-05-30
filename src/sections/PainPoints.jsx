@@ -1,5 +1,5 @@
-import { useRef, useState } from "react";
-import { motion, AnimatePresence, useMotionValueEvent } from "framer-motion";
+import { useRef, useState, useEffect } from "react";
+import { motion, useMotionValueEvent } from "framer-motion";
 import { useSectionProgress } from "../lib/useSectionProgress";
 import "./PainPoints.css";
 
@@ -97,11 +97,20 @@ export default function PainPoints() {
   const ref = useRef(null);
   const p = useSectionProgress(ref);
   const [active, setActive] = useState(0);
+  // 박스 크기 전환이 끝났는지 여부 — 전환 중에는 텍스트를 숨긴다
+  const [settled, setSettled] = useState(true);
 
   useMotionValueEvent(p, "change", (v) => {
     const next = v < 0.36 ? 0 : v < 0.68 ? 1 : 2;
     setActive((cur) => (cur === next ? cur : next));
   });
+
+  // active가 바뀌면 전환 시작 → 일정 시간 뒤(스프링 안착) 텍스트 다시 표시
+  useEffect(() => {
+    setSettled(false);
+    const t = setTimeout(() => setSettled(true), 560);
+    return () => clearTimeout(t);
+  }, [active]);
 
   return (
     <section className="pp" ref={ref}>
@@ -121,57 +130,46 @@ export default function PainPoints() {
                   transition={{ type: "spring", stiffness: 220, damping: 32, mass: 0.9 }}
                   onClick={() => setActive(i)}
                 >
-                  <AnimatePresence>
-                    {isOpen && (
-                      <motion.div
-                        className="pp__visual"
+                  {isOpen && settled && (
+                    <motion.div
+                      className="pp__visual"
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      transition={{ duration: 0.5, ease: "easeOut" }}
+                    >
+                      <PanelVisual tone={panel.tone} />
+                    </motion.div>
+                  )}
+
+                  <div className="pp__copy">
+                    {isOpen && settled && (
+                      <motion.p
+                        className={`pp__label pp__label--${panel.tone}`}
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                        transition={{ duration: 0.5, delay: 0.18, ease: "easeOut" }}
+                        transition={{ duration: 0.35, ease: "easeOut" }}
                       >
-                        <PanelVisual tone={panel.tone} />
-                      </motion.div>
+                        {panel.label}
+                      </motion.p>
                     )}
-                  </AnimatePresence>
-
-                  <motion.div className="pp__copy" layout>
-                    <AnimatePresence initial={false}>
-                      {isOpen && (
-                        <motion.p
-                          layout
-                          className={`pp__label pp__label--${panel.tone}`}
-                          initial={{ opacity: 0 }}
-                          animate={{ opacity: 1 }}
-                          exit={{ opacity: 0 }}
-                          transition={{ duration: 0.3, ease: "easeOut" }}
-                        >
-                          {panel.label}
-                        </motion.p>
-                      )}
-                    </AnimatePresence>
                     <motion.h3
-                      layout
                       className="pp__head"
-                      transition={{ type: "spring", stiffness: 240, damping: 32, mass: 0.9 }}
+                      animate={{ opacity: settled ? 1 : 0 }}
+                      transition={{ duration: 0.3, ease: "easeOut" }}
                     >
                       {panel.head}
                     </motion.h3>
-                    <AnimatePresence initial={false}>
-                      {isOpen && (
-                        <motion.p
-                          layout
-                          className="pp__body"
-                          initial={{ opacity: 0, y: 12 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          exit={{ opacity: 0, y: 8 }}
-                          transition={{ duration: 0.4, delay: 0.22, ease: "easeOut" }}
-                        >
-                          {panel.body}
-                        </motion.p>
-                      )}
-                    </AnimatePresence>
-                  </motion.div>
+                    {isOpen && settled && (
+                      <motion.p
+                        className="pp__body"
+                        initial={{ opacity: 0, y: 12 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.4, ease: "easeOut" }}
+                      >
+                        {panel.body}
+                      </motion.p>
+                    )}
+                  </div>
                 </motion.article>
               );
             })}
