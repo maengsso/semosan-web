@@ -97,18 +97,22 @@ export default function PainPoints() {
   const ref = useRef(null);
   const p = useSectionProgress(ref);
   const [active, setActive] = useState(0);
-  // 박스 크기 전환이 끝났는지 여부 — 전환 중에는 텍스트를 숨긴다
-  const [settled, setSettled] = useState(true);
+  // 지금 "닫히는 중"인 박스 인덱스 — 접히는 동안 그 박스 텍스트만 숨긴다
+  const [closing, setClosing] = useState(null);
+  const prevActive = useRef(0);
 
   useMotionValueEvent(p, "change", (v) => {
     const next = v < 0.36 ? 0 : v < 0.68 ? 1 : 2;
     setActive((cur) => (cur === next ? cur : next));
   });
 
-  // active가 바뀌면 전환 시작 → 일정 시간 뒤(스프링 안착) 텍스트 다시 표시
+  // active가 바뀌면 직전 박스가 접히는 중 → 안착 후 다시 표시
   useEffect(() => {
-    setSettled(false);
-    const t = setTimeout(() => setSettled(true), 560);
+    const prev = prevActive.current;
+    if (prev === active) return;
+    prevActive.current = active;
+    setClosing(prev);
+    const t = setTimeout(() => setClosing(null), 560);
     return () => clearTimeout(t);
   }, [active]);
 
@@ -119,6 +123,7 @@ export default function PainPoints() {
           <div className="pp__accordion">
             {PANELS.map((panel, i) => {
               const isOpen = i === active;
+              const isClosing = i === closing;
               return (
                 <motion.article
                   key={panel.key}
@@ -130,41 +135,41 @@ export default function PainPoints() {
                   transition={{ type: "spring", stiffness: 220, damping: 32, mass: 0.9 }}
                   onClick={() => setActive(i)}
                 >
-                  {isOpen && settled && (
+                  {isOpen && (
                     <motion.div
                       className="pp__visual"
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
-                      transition={{ duration: 0.5, ease: "easeOut" }}
+                      transition={{ duration: 0.5, delay: 0.18, ease: "easeOut" }}
                     >
                       <PanelVisual tone={panel.tone} />
                     </motion.div>
                   )}
 
                   <div className="pp__copy">
-                    {isOpen && settled && (
+                    {isOpen && (
                       <motion.p
                         className={`pp__label pp__label--${panel.tone}`}
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
-                        transition={{ duration: 0.35, ease: "easeOut" }}
+                        transition={{ duration: 0.35, delay: 0.18, ease: "easeOut" }}
                       >
                         {panel.label}
                       </motion.p>
                     )}
                     <motion.h3
                       className="pp__head"
-                      animate={{ opacity: settled ? 1 : 0 }}
-                      transition={{ duration: 0.3, ease: "easeOut" }}
+                      animate={{ opacity: isClosing ? 0 : 1 }}
+                      transition={{ duration: 0.25, ease: "easeOut" }}
                     >
                       {panel.head}
                     </motion.h3>
-                    {isOpen && settled && (
+                    {isOpen && (
                       <motion.p
                         className="pp__body"
                         initial={{ opacity: 0, y: 12 }}
                         animate={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 0.4, ease: "easeOut" }}
+                        transition={{ duration: 0.4, delay: 0.22, ease: "easeOut" }}
                       >
                         {panel.body}
                       </motion.p>
