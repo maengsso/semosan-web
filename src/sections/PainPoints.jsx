@@ -107,11 +107,6 @@ export default function PainPoints() {
     <section className="pp" ref={ref}>
       <div className="pp__sticky">
         <div className="pp__inner">
-          <header className="pp__header">
-            <p className="pp__eyebrow">REALITY CHECK</p>
-            <h2 className="pp__title">등산러 현실</h2>
-          </header>
-
           <div className="pp__accordion">
             {PANELS.map((panel, i) => {
               const isOpen = i === active;
