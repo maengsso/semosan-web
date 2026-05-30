@@ -118,7 +118,7 @@ export default function PainPoints() {
                   }`}
                   initial={false}
                   animate={{ flexGrow: isOpen ? 1 : 0 }}
-                  transition={{ duration: 0.6, ease: [0.4, 0, 0.2, 1] }}
+                  transition={{ type: "spring", stiffness: 220, damping: 32, mass: 0.9 }}
                   onClick={() => setActive(i)}
                 >
                   <AnimatePresence>
@@ -128,7 +128,7 @@ export default function PainPoints() {
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
-                        transition={{ duration: 0.45, ease: "easeOut" }}
+                        transition={{ duration: 0.5, delay: 0.18, ease: "easeOut" }}
                       >
                         <PanelVisual tone={panel.tone} />
                       </motion.div>
@@ -144,10 +144,10 @@ export default function PainPoints() {
                       {isOpen && (
                         <motion.p
                           className="pp__body"
-                          initial={{ opacity: 0, height: 0 }}
-                          animate={{ opacity: 1, height: "auto" }}
-                          exit={{ opacity: 0, height: 0 }}
-                          transition={{ duration: 0.45, ease: "easeOut" }}
+                          initial={{ opacity: 0, y: 12 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          exit={{ opacity: 0, y: 8 }}
+                          transition={{ duration: 0.4, delay: 0.22, ease: "easeOut" }}
                         >
                           {panel.body}
                         </motion.p>
