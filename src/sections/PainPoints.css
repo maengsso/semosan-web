@@ -60,9 +60,6 @@
 .pp__panel--blue.is-closed { background: #60a5fa; }
 .pp__panel--red.is-closed { background: #ff5249; }
 
-.pp__panel.is-closed .pp__label {
-  display: none;
-}
 .pp__panel.is-closed .pp__head {
   color: #000;
   margin: 0;
@@ -117,7 +114,7 @@
   letter-spacing: -0.025em;
   line-height: 1.2;
   color: var(--white);
-  transition: color 0.4s ease, font-size 0.5s ease;
+  transition: color 0.4s ease;
 }
 
 .pp__body {

@@ -135,14 +135,32 @@ export default function PainPoints() {
                     )}
                   </AnimatePresence>
 
-                  <div className="pp__copy">
-                    <p className={`pp__label pp__label--${panel.tone}`}>
-                      {panel.label}
-                    </p>
-                    <h3 className="pp__head">{panel.head}</h3>
-                    <AnimatePresence>
+                  <motion.div className="pp__copy" layout>
+                    <AnimatePresence initial={false}>
                       {isOpen && (
                         <motion.p
+                          layout
+                          className={`pp__label pp__label--${panel.tone}`}
+                          initial={{ opacity: 0 }}
+                          animate={{ opacity: 1 }}
+                          exit={{ opacity: 0 }}
+                          transition={{ duration: 0.3, ease: "easeOut" }}
+                        >
+                          {panel.label}
+                        </motion.p>
+                      )}
+                    </AnimatePresence>
+                    <motion.h3
+                      layout
+                      className="pp__head"
+                      transition={{ type: "spring", stiffness: 240, damping: 32, mass: 0.9 }}
+                    >
+                      {panel.head}
+                    </motion.h3>
+                    <AnimatePresence initial={false}>
+                      {isOpen && (
+                        <motion.p
+                          layout
                           className="pp__body"
                           initial={{ opacity: 0, y: 12 }}
                           animate={{ opacity: 1, y: 0 }}
@@ -153,7 +171,7 @@ export default function PainPoints() {
                         </motion.p>
                       )}
                     </AnimatePresence>
-                  </div>
+                  </motion.div>
                 </motion.article>
               );
             })}
