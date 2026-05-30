@@ -7,12 +7,13 @@ import ppWindow from "../assets/pp-window.png";
 import ppMagnifier from "../assets/pp-magnifier-img.png";
 
 // 창들이 하나씩 떠오르는 순서/위치, 마지막에 돋보기
+// 위치·등장 타이밍·기울기를 불규칙하게
 const WINDOWS = [
-  { cls: "pp__win--1", opacity: 0.85 },
-  { cls: "pp__win--5", opacity: 0.9 },
-  { cls: "pp__win--2", opacity: 0.92 },
-  { cls: "pp__win--3", opacity: 0.96 },
-  { cls: "pp__win--4", opacity: 1 },
+  { cls: "pp__win--1", opacity: 0.85, delay: 0.0, rot: -3 },
+  { cls: "pp__win--5", opacity: 0.9, delay: 0.32, rot: 4 },
+  { cls: "pp__win--2", opacity: 0.92, delay: 0.14, rot: -1.5 },
+  { cls: "pp__win--3", opacity: 0.96, delay: 0.46, rot: 3 },
+  { cls: "pp__win--4", opacity: 1, delay: 0.24, rot: -4 },
 ];
 
 const PANELS = [
@@ -71,15 +72,15 @@ function PanelVisual({ tone }) {
   if (tone === "blue") {
     return (
       <div className="pp__windows" aria-hidden="true">
-        {WINDOWS.map((w, i) => (
+        {WINDOWS.map((w) => (
           <motion.img
             key={w.cls}
             src={ppWindow}
             className={`pp__win ${w.cls}`}
             alt=""
-            initial={{ opacity: 0, y: 28, scale: 0.92 }}
-            animate={{ opacity: w.opacity, y: 0, scale: 1 }}
-            transition={{ duration: 0.45, delay: i * 0.16, ease: "easeOut" }}
+            initial={{ opacity: 0, y: 26, scale: 0.9, rotate: w.rot }}
+            animate={{ opacity: w.opacity, y: 0, scale: 1, rotate: w.rot }}
+            transition={{ duration: 0.45, delay: w.delay, ease: "easeOut" }}
           />
         ))}
         <motion.img
@@ -90,7 +91,7 @@ function PanelVisual({ tone }) {
           animate={{ opacity: 1, scale: 1 }}
           transition={{
             duration: 0.5,
-            delay: WINDOWS.length * 0.16 + 0.1,
+            delay: 0.86,
             ease: [0.34, 1.45, 0.64, 1],
           }}
         />

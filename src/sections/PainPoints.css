@@ -179,11 +179,11 @@
   height: auto;
 }
 
-.pp__win--1 { right: 26%; top: 3%;  z-index: 1; }
-.pp__win--5 { right: 18%; top: 9%;  z-index: 2; }
-.pp__win--2 { right: 10%; top: 15%; z-index: 3; }
-.pp__win--3 { right: 2%;  top: 21%; z-index: 4; }
-.pp__win--4 { right: 14%; top: 27%; z-index: 5; }
+.pp__win--1 { right: 25%; top: 2%;  z-index: 2; }
+.pp__win--5 { right: 4%;  top: 8%;  z-index: 5; }
+.pp__win--2 { right: 17%; top: 22%; z-index: 3; }
+.pp__win--3 { right: 1%;  top: 34%; z-index: 1; }
+.pp__win--4 { right: 30%; top: 17%; z-index: 4; }
 
 .pp__magnifier {
   position: absolute;
