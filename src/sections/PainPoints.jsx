@@ -3,12 +3,17 @@ import { motion, useMotionValueEvent } from "framer-motion";
 import { useSectionProgress } from "../lib/useSectionProgress";
 import "./PainPoints.css";
 
-import ppWindow1 from "../assets/pp-window1.svg";
-import ppWindow2 from "../assets/pp-window2.svg";
-import ppWindow3 from "../assets/pp-window3.svg";
-import ppWindow4 from "../assets/pp-window4.svg";
-import ppWindow5 from "../assets/pp-window5.svg";
-import ppMagnifier from "../assets/pp-magnifier.svg";
+import ppWindow from "../assets/pp-window.png";
+import ppMagnifier from "../assets/pp-magnifier-img.png";
+
+// 창들이 하나씩 떠오르는 순서/위치, 마지막에 돋보기
+const WINDOWS = [
+  { cls: "pp__win--1", opacity: 0.5 },
+  { cls: "pp__win--5", opacity: 0.9 },
+  { cls: "pp__win--2", opacity: 0.6 },
+  { cls: "pp__win--3", opacity: 0.95 },
+  { cls: "pp__win--4", opacity: 0.95 },
+];
 
 const PANELS = [
   {
@@ -66,12 +71,29 @@ function PanelVisual({ tone }) {
   if (tone === "blue") {
     return (
       <div className="pp__windows" aria-hidden="true">
-        <img src={ppWindow1} className="pp__win pp__win--1" alt="" />
-        <img src={ppWindow3} className="pp__win pp__win--3" alt="" />
-        <img src={ppWindow4} className="pp__win pp__win--4" alt="" />
-        <img src={ppWindow2} className="pp__win pp__win--2" alt="" />
-        <img src={ppWindow5} className="pp__win pp__win--5" alt="" />
-        <img src={ppMagnifier} className="pp__magnifier" alt="" />
+        {WINDOWS.map((w, i) => (
+          <motion.img
+            key={w.cls}
+            src={ppWindow}
+            className={`pp__win ${w.cls}`}
+            alt=""
+            initial={{ opacity: 0, y: 28, scale: 0.92 }}
+            animate={{ opacity: w.opacity, y: 0, scale: 1 }}
+            transition={{ duration: 0.45, delay: i * 0.16, ease: "easeOut" }}
+          />
+        ))}
+        <motion.img
+          src={ppMagnifier}
+          className="pp__magnifier"
+          alt=""
+          initial={{ opacity: 0, scale: 0.5 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{
+            duration: 0.5,
+            delay: WINDOWS.length * 0.16 + 0.1,
+            ease: [0.34, 1.45, 0.64, 1],
+          }}
+        />
       </div>
     );
   }
