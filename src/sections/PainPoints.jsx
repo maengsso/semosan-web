@@ -8,11 +8,11 @@ import ppMagnifier from "../assets/pp-magnifier-img.png";
 
 // 창들이 하나씩 떠오르는 순서/위치, 마지막에 돋보기
 const WINDOWS = [
-  { cls: "pp__win--1", opacity: 0.5 },
+  { cls: "pp__win--1", opacity: 0.85 },
   { cls: "pp__win--5", opacity: 0.9 },
-  { cls: "pp__win--2", opacity: 0.6 },
-  { cls: "pp__win--3", opacity: 0.95 },
-  { cls: "pp__win--4", opacity: 0.95 },
+  { cls: "pp__win--2", opacity: 0.92 },
+  { cls: "pp__win--3", opacity: 0.96 },
+  { cls: "pp__win--4", opacity: 1 },
 ];
 
 const PANELS = [
